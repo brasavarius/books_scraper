@@ -41,7 +41,7 @@ python scraper.py
 | typing | https://docs.python.org/3/library/typing.html | For type hints like List[Dict] |
 | bs4 | https://beautiful-soup-4.readthedocs.io/en/latest/ | For pulling data out of HTML |
 | requests | https://requests.readthedocs.io/en/latest/index.html | For getting html from the WEB |
-| schedule | hhttps://schedule.readthedocs.io/en/stable/index.html |  For job scheduling 19:00 every day |
+| schedule | https://schedule.readthedocs.io/en/stable/index.html |  For job scheduling 19:00 every day |
 
 ## Автор:
 
