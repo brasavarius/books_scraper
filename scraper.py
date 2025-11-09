@@ -18,6 +18,9 @@ from tqdm import tqdm
 # Адрес первой страницы каталога книг
 URL = 'http://books.toscrape.com/catalogue/page-1.html'
 
+# Для повторного использования базового соединения и для ускорения парсинга
+s_requests = requests.Session()
+
 
 def get_book_data(book_url: str) -> dict:
     '''
@@ -29,7 +32,9 @@ def get_book_data(book_url: str) -> dict:
     '''
 
     # Получаем страницу по ардесу book_url
-    responce = requests.get(book_url, timeout=5)
+    responce = s_requests.get(book_url, timeout=5)
+    # Для корректной обработки значения цены
+    responce.encoding = 'utf-8'
     # Словарь для вывода данных по результатам работы функции
     res: dict = {}
     # Убеждаемся, что наш запрос отработал корректно и вернул код состояния 200
@@ -47,9 +52,17 @@ def get_book_data(book_url: str) -> dict:
     # Находим описание книги по соседнему уникальному тегу и его атрибуту
     sibling = soup.find('div', attrs={'id': 'product_description', })
     try:
+        # Добавляем описание книги в словарь вывода с ключем Description
         res['Description'] = sibling.find_next_sibling().text
     except AttributeError:
         res['Description'] = 'Нет описания на сайте'
+    # Находим рейтинг книги по тегу 'p' и его атрибуту 'class'
+    rating = soup.find('p', attrs={'class': 'star-rating', })
+    try:
+        # Добавляем рейтинг книги в словарь вывода с ключем Rating
+        res['Rating'] = rating.attrs['class'][1]
+    except AttributeError:
+        res['Rating'] = 'Нет рейтинга книги на сайте'
     # Находим по тегу и его уникальному атрибуту таблицу с остальными
     # характеристиками книги. Через children получаем итератор по вложенным
     # тегам.
@@ -77,7 +90,7 @@ def get_number_of_pages(url: str) -> int:
     Returns:
     int: Количество страниц в каталоге
     '''
-    responce = requests.get(url, timeout=5)
+    responce = s_requests.get(url, timeout=5)
     # Проверяем, что страница доступна
     if responce.status_code != 200:
         raise ConnectionError(f"Can't connect to {responce.status_code}")
@@ -110,7 +123,7 @@ def get_urls_books(url: str, number_of_pages: int) -> List[str]:
         # Не меняющаяся часть url + номер страницы каталога
         url_p = f'{re.search('.+page-', url)[0]}{str(i)}.html'
         # Проверка на доступность страницы каталога
-        resp_book = requests.get(url_p, timeout=5)
+        resp_book = s_requests.get(url_p, timeout=5)
         if resp_book.status_code != 200:
             raise ConnectionError(f"Can't connect to {resp_book.status_code}")
         # Проходим парсингом bs4 по странице каталога
@@ -159,7 +172,7 @@ def scrape_books(is_save: bool, url: str) -> List[Dict]:
 if __name__ == '__main__':
     schedule.every().day.at("19:00").do(lambda: scrape_books(
         is_save=True, url=URL
-        )
+    )
     )
     while True:
         schedule.run_pending()
