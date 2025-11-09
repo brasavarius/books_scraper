@@ -18,8 +18,8 @@ cd books_scraper
 ```
 2. Создайте в том же каталоге виртуальное окружение и активируйте его (вариант для unix систем):
 ```
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 3. Установите зависимости из файла requirements.txt:
 ```
